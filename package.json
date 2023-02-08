@@ -8,14 +8,18 @@
   },
   "dependencies": {
     "firebase": "^9.17.1",
+    "immer": "^9.0.19",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.0",
     "react-icons": "^4.7.1",
     "react-router-dom": "^6.8.1",
     "vitawind": "^2.0.0",
+    "vite-tsconfig-paths": "^4.0.5",
     "zustand": "^4.3.2"
   },
   "devDependencies": {
+    "@faker-js/faker": "^7.6.0",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
     "@typescript-eslint/eslint-plugin": "^5.27.0",
