@@ -1,0 +1,35 @@
+{
+  "rules": {
+    "contacts": {
+      ".read":"true",
+      ".write": "false",
+      "$uid": {
+        ".write": "$uid === auth.uid",
+        ".read": "true",
+        "uids":{
+          ".validate": "newData.exists()"
+        }
+      }
+    },
+    "users": {
+      "$uid": {
+        ".write": "$uid === auth.uid",
+        ".read": "true",
+       "user":{
+					"name": {
+            ".validate": "newData.isString()"
+					},
+					"profilePic": {
+            ".validate": "newData.isString()"
+					},
+					"uid": {
+            ".validate": "newData.isString()"
+					},
+          "username": {
+          	".validate": "newData.isString()"
+          }
+        }
+      }
+    	}
+  }
+}
