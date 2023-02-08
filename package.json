@@ -7,9 +7,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "firebase": "^9.17.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "vitawind": "^2.0.0"
+    "react-icons": "^4.7.1",
+    "react-router-dom": "^6.8.1",
+    "vitawind": "^2.0.0",
+    "zustand": "^4.3.2"
   },
   "devDependencies": {
     "@types/react": "^18.0.27",
