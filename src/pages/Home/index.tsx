@@ -1,8 +1,15 @@
 import { IoLogoGoogle } from 'react-icons/io'
+import { useAuthStore } from 'store/auth'
 
 import logo from '../../assets/img/logo-horizontal.png'
 
 export function Home() {
+  const signIn = useAuthStore(state => state.signIn)
+
+  async function handleLogin() {
+    await signIn()
+  }
+
   return (
     <div className="items start flex h-screen w-screen flex-col items-center justify-between bg-home bg-cover bg-no-repeat font-brand text-app-text">
       <div className="flex w-full flex-col items-center justify-center pt-64 text-center">
@@ -21,7 +28,10 @@ export function Home() {
       </div>
       <footer className="flex w-full items-center justify-end p-4 pr-16">
         <div className="flex flex-col items-center justify-center">
-          <button className="flex items-center justify-center gap-4 rounded-md bg-red-600 p-4 px-10 text-xl font-bold uppercase leading-none transition-colors hover:bg-red-800">
+          <button
+            onClick={handleLogin}
+            className="flex items-center justify-center gap-4 rounded-md bg-red-600 p-4 px-10 text-xl font-bold uppercase leading-none transition-colors hover:bg-red-800"
+          >
             <IoLogoGoogle />
             Login
           </button>
