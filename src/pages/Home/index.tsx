@@ -1,13 +1,15 @@
 import { IoLogoGoogle } from 'react-icons/io'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from 'store/auth'
 
 import logo from '../../assets/img/logo-horizontal.png'
 
 export function Home() {
   const signIn = useAuthStore(state => state.signIn)
-
+  const navigate = useNavigate()
   async function handleLogin() {
     await signIn()
+    navigate('/chat')
   }
 
   return (
