@@ -1,17 +1,15 @@
 import { faker } from '@faker-js/faker'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { ref, get, child, set } from 'firebase/database'
+import { collection, doc, setDoc } from 'firebase/firestore'
 import { produce } from 'immer'
 import { auth, database } from 'lib/firebase'
 import toast from 'react-hot-toast'
 import create from 'zustand'
 
-interface User {
+export interface User {
   id: string
   name: string
-  email: string
   profilePic?: string
-  contacts?: string[]
   username: string
 }
 
@@ -28,7 +26,6 @@ function storeUser(user: User) {
   localStorage.setItem('uid', user.id)
   localStorage.setItem('name', user.name)
   localStorage.setItem('profilePic', user.profilePic || '')
-  localStorage.setItem('contacts', JSON.stringify(user.contacts))
   localStorage.setItem('username', user.username)
 }
 
@@ -36,14 +33,13 @@ function clearUser() {
   localStorage.removeItem('uid')
   localStorage.removeItem('name')
   localStorage.removeItem('profilePic')
-  localStorage.removeItem('contacts')
   localStorage.removeItem('username')
 }
 
 const userInitialState: User = {
   id: '',
   name: '',
-  email: '',
+  profilePic: '',
   username: ''
 }
 
@@ -58,20 +54,6 @@ export const useAuthStore = create<State>(setState => ({
       const { user } = await signInWithPopup(auth, provider)
       const { uid: id, displayName: name, photoURL: profilePic, email } = user
       if (name && email) {
-        const refContacts = ref(database)
-        const contacts = await get(child(refContacts, 'contacts/' + id))
-          .then(snapshot => {
-            if (snapshot.exists()) {
-              return snapshot.val()
-            } else {
-              toast.error('Você não possui contatos.')
-            }
-          })
-          .catch(error => {
-            toast.error('Ocorreu um erro ao buscar seus contatos')
-            console.error(error)
-          })
-        console.log('contatos', contacts)
         const userFirstname = name.split(' ')[0]
         const userLastName = name.split(' ')[1]
         const newUser = {
@@ -79,16 +61,15 @@ export const useAuthStore = create<State>(setState => ({
           name,
           email,
           profilePic: profilePic || '',
-          contacts,
-          username: faker.internet.userName(userFirstname, userLastName)
+          username: faker.internet.userName(userFirstname, userLastName),
+          chats: []
         }
 
         storeUser(newUser)
-        const refUsers = ref(database, 'users/' + id)
-        await set(refUsers, {
-          id,
+        const usersRef = collection(database, 'users')
+
+        await setDoc(doc(usersRef, newUser.id), {
           name,
-          email,
           profilePic,
           username: newUser.username
         })
