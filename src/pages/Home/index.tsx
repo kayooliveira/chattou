@@ -1,12 +1,32 @@
+import { useEffect } from 'react'
+import toast from 'react-hot-toast'
 import { IoLogoGoogle } from 'react-icons/io'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from 'store/auth'
 
 import logo from '../../assets/img/logo-horizontal.png'
 
 export function Home() {
   const signIn = useAuthStore(state => state.signIn)
+  const isAuth = useAuthStore(state => state.isAuth)
+  const user = useAuthStore(state => state.user)
   const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    if (isAuth) {
+      navigate('/chat')
+      toast.remove()
+      toast.success('Bem vindo de volta, ' + user.name + '!')
+    }
+  }, [isAuth])
+
+  useEffect(() => {
+    if (location.state?.notify) {
+      toast.loading(location.state.notify, { duration: 1000 })
+    }
+  }, [location.state])
+
   async function handleLogin() {
     await signIn()
     navigate('/chat')
