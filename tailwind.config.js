@@ -16,11 +16,11 @@ module.exports = {
         },
       },
       fontFamily: {
-        brand: 'Comfortaa, Arial, Helvetica, sans-serif'
+        brand: 'Nunito, Arial, Helvetica, sans-serif'
       }
     },
   },
   plugins: [
-    require('tailwind-scrollbar')
+    require('tailwind-scrollbar')({ nocompatible:true })
   ],
 }

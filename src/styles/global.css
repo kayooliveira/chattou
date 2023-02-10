@@ -4,5 +4,5 @@
 
 
 body {
-  @apply bg-app-background;
+  @apply bg-app-background font-brand;
 }
