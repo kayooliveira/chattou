@@ -33,22 +33,24 @@ export function Home() {
   }
 
   return (
-    <div className="items start flex h-screen w-screen flex-col items-center justify-between bg-home bg-cover bg-no-repeat font-brand text-app-text">
-      <div className="flex w-full flex-col items-center justify-center pt-64 text-center">
-        <h1 className="text-[4rem] leading-none xl:text-[6rem]">Welcome to</h1>
+    <div className="flex h-screen w-screen flex-col items-center justify-center bg-home bg-cover bg-no-repeat font-brand text-sm text-app-text lg:justify-between">
+      <div className="flex w-full flex-col items-center justify-center pt-20 text-center lg:pt-64">
+        <h1 className="text-[2.5rem] leading-none xl:text-[6rem]">
+          Welcome to
+        </h1>
         <img
           src={logo}
           alt=""
-          className="w-[20rem] leading-none xl:w-[35.7rem]"
+          className="w-[16rem] leading-none xl:w-[35.7rem]"
         />
-        <p className="text-center text-2xl leading-snug xl:text-3xl">
+        <p className="text-xl leading-snug xl:text-3xl">
           Discover a whole new world of connection with CHATTOU!
           <br /> Chat with people from all over the world in real time,
           <br /> make new friends and share your ideas and experiences.
           <br /> Join our global community right now.
         </p>
       </div>
-      <footer className="flex w-full items-center justify-end p-4 pr-16">
+      <footer className="flex w-full items-center justify-center p-4 lg:justify-end lg:pr-16">
         <div className="flex flex-col items-center justify-center">
           <button
             onClick={handleLogin}
