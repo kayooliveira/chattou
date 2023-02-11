@@ -5,7 +5,7 @@ interface ActiveUserCardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function ActiveUserCard({ profilePic, name }: ActiveUserCardProps) {
   return (
-    <div className="flex w-24 shrink-0 flex-col items-stretch justify-center gap-2 overflow-hidden">
+    <div className="flex w-16 shrink-0 flex-col items-stretch justify-center gap-2 overflow-hidden">
       <img
         src={profilePic}
         alt={name + ' user card'}
