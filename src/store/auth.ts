@@ -1,4 +1,3 @@
-import defaultAvatar from 'assets/img/defaultAvatar.jpg'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { collection, doc, setDoc } from 'firebase/firestore'
 import { produce } from 'immer'
@@ -7,7 +6,7 @@ import toast from 'react-hot-toast'
 import { create } from 'zustand'
 
 /**
- * @version 1.0.0 // ! Última refatoração: 11/02/2023
+ * @version 1.0.1 // ! Última refatoração: 11/02/2023
  *
  * @author Kayo Oliveira <contato@kayooliveira.com>
  *
@@ -53,7 +52,7 @@ export const useAuthStore = create<State>(setState => ({
 
       if (name) {
         // ? Verifica se o usuário possui nome.
-
+        const defaultAvatar = `https://api.multiavatar.com/${name.trim()}.svg` // ? Utiliza uma api para geração de um avatar para o usuário caso o mesmo não possua.
         const newUser: User = {
           // ? Cria os dados do novo usuário.
           id,
