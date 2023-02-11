@@ -1,5 +1,8 @@
+import { useChatStore } from 'store/chat'
+
 interface RecentConversationsCardProps {
   name: string
+  chatId: string
   lastMessage: string
   lastMessageTime: string
   messagesQnt: number
@@ -7,13 +10,23 @@ interface RecentConversationsCardProps {
 }
 export function RecentConversationsCard({
   name,
+  chatId,
   lastMessage,
   lastMessageTime,
   messagesQnt,
   profilePic
 }: RecentConversationsCardProps) {
+  const setCurrentConversation = useChatStore(
+    state => state.setCurrentConversation
+  )
+  function handleChangeCurrentConversation() {
+    setCurrentConversation(chatId)
+  }
   return (
-    <div className="flex items-center justify-between gap-2 rounded-[2rem] border border-app-text/10 bg-app-backgroundLight p-4 text-xs transition-colors hover:border-app-text/30 hover:bg-app-backgroundLight/20 md:gap-4 md:text-sm lg:text-base">
+    <div
+      onClick={handleChangeCurrentConversation}
+      className="flex cursor-pointer items-center justify-between gap-2 rounded-[2rem] border border-app-text/10 bg-app-backgroundLight p-4 text-xs transition-colors hover:border-app-text/30 hover:bg-app-backgroundLight/20 md:gap-4 md:text-sm lg:text-base"
+    >
       <img src={profilePic} className="w-[23%] rounded-full" />
       <div className="flex flex-1 flex-col gap-4 overflow-hidden">
         <p className="truncate text-sm font-bold text-app-text md:text-base">
