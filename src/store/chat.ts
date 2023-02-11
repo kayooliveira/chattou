@@ -1,10 +1,11 @@
-import { collection, getDoc, doc, setDoc } from 'firebase/firestore'
+import { collection, getDoc, doc, setDoc, updateDoc } from 'firebase/firestore'
 import { produce } from 'immer'
 import { database } from 'lib/firebase'
 import { v4 } from 'uuid'
 import create from 'zustand'
 
 export interface Message {
+  id: string
   chatId: string
   content: string
   contentType: 'text' | 'image' | 'audio' | 'video' | 'file'
@@ -32,31 +33,13 @@ interface State {
   setChatMessages: (chatId: string, messages: Message[]) => void
   setChatMessage: (chatId: string, message: Message) => void
   setChats: (chats: Chat[]) => void
+  addNewChat: (chat: Chat) => void
   setCurrentConversation: (chatId: string) => void
 }
 
-const MessageInitialState: Message = {
-  chatId: '',
-  content: '',
-  contentType: 'text',
-  recipient: '',
-  sender: '',
-  time: new Date()
-}
+const ChatsInitialState: Chat[] = []
 
-const ChatsInitialState: Chat[] = [
-  {
-    id: '',
-    lastMessage: '',
-    lastMessageDate: new Date(),
-    name: '',
-    users: [],
-    image: '',
-    messages: [MessageInitialState]
-  }
-]
-
-export const useChatStore = create<State>(setState => ({
+export const useChatStore = create<State>((setState, getState) => ({
   chats: ChatsInitialState,
   currentConversation: '',
   createChat: async (user1Id, user2Id) => {
@@ -77,7 +60,7 @@ export const useChatStore = create<State>(setState => ({
         lastMessageDate: new Date(),
         name: user2Data.name,
         users: [user1Id, user2Id],
-        image: user2Data.image,
+        image: user2Data.profilePic,
         messages: []
       }
       setState(
@@ -93,11 +76,39 @@ export const useChatStore = create<State>(setState => ({
     const messagesRef = collection(database, 'messages')
     const messageId = v4()
     await setDoc(doc(messagesRef, messageId), message)
+    const chatDoc = doc(database, 'chats', message.chatId)
+    await updateDoc(chatDoc, {
+      lastMessage: message.content,
+      lastMessageDate: message.time
+    })
   },
   setChats: chats => {
     setState(
       produce<State>(state => {
         state.chats = chats
+      })
+    )
+  },
+  addNewChat: chat => {
+    const actualState = getState()
+    const chatExists = actualState.chats.find(
+      actualChat => actualChat.id === chat.id
+    )
+
+    if (chatExists) {
+      const chatIndex = actualState.chats.findIndex(
+        actualChat => actualChat.id === chat.id
+      )
+      setState(
+        produce<State>(state => {
+          state.chats[chatIndex] = chat
+        })
+      )
+      return
+    }
+    setState(
+      produce<State>(state => {
+        state.chats.push(chat)
       })
     )
   },
