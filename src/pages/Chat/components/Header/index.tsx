@@ -27,7 +27,7 @@ export function Header() {
           Ativo agora
           <span className="h-3 w-3 rounded-full border border-[#C093ED] bg-green-400" />
         </span>
-        <div className="flex w-full items-center gap-3 overflow-x-scroll overflow-y-hidden scrollbar-none">
+        <div className="mb-4 flex w-full items-center gap-3 overflow-x-scroll overflow-y-hidden scrollbar-none">
           <ActiveUserCard
             name="Melancia"
             profilePic="https://pps.whatsapp.net/v/t61.24694-24/324774673_143469341868986_3167121837011671739_n.jpg?ccb=11-4&oh=01_AdTYQNpBAgITU6pegcyB_-TX7Q9uq8vvIP8ieCsI1BlXBQ&oe=63F29C1E"
