@@ -14,18 +14,23 @@ export interface Message {
 }
 
 export interface Chat {
+  id: string
   lastMessage: string
   lastMessageDate: Date
   name: string
   users: string[]
   image: string
+  messages: Message[]
 }
 
 interface State {
-  chats?: Chat[]
-  messages: Message[]
+  chats: Chat[]
+  currentChat: string
+  isChatsLoading?: boolean
+  isMessagesLoading?: boolean
   createChat: (user1Id: string, user2Id: string) => Promise<void>
   addMessage: (message: Message) => Promise<void>
+  setChatMessages: (chatId: string, messages: Message[]) => void
   setChats: (chats: Chat[]) => void
 }
 
@@ -40,17 +45,19 @@ const MessageInitialState: Message = {
 
 const ChatsInitialState: Chat[] = [
   {
+    id: '',
     lastMessage: '',
     lastMessageDate: new Date(),
     name: '',
     users: [],
-    image: ''
+    image: '',
+    messages: [MessageInitialState]
   }
 ]
 
 export const useChatStore = create<State>(setState => ({
   chats: ChatsInitialState,
-  messages: [MessageInitialState],
+  currentChat: '',
   createChat: async (user1Id, user2Id) => {
     const usersRef = collection(database, 'users')
 
@@ -62,12 +69,15 @@ export const useChatStore = create<State>(setState => ({
       }
     })
     if (user2Data) {
+      const chatId = v4()
       const chat: Chat = {
+        id: chatId,
         lastMessage: '',
         lastMessageDate: new Date(),
         name: user2Data.name,
         users: [user1Id, user2Id],
-        image: user2Data.image
+        image: user2Data.image,
+        messages: []
       }
       setState(
         produce<State>(state => {
@@ -75,17 +85,29 @@ export const useChatStore = create<State>(setState => ({
         })
       )
       const chatsRef = collection(database, 'chats')
-      await setDoc(doc(chatsRef, v4()), chat)
+      await setDoc(doc(chatsRef, chatId), chat)
     }
   },
   addMessage: async message => {
     const messagesRef = collection(database, 'messages')
-    await setDoc(doc(messagesRef, v4()), message)
+    const messageId = v4()
+    await setDoc(doc(messagesRef, messageId), message)
   },
   setChats: chats => {
     setState(
       produce<State>(state => {
         state.chats = chats
+      })
+    )
+  },
+  setChatMessages: (chatId, messages) => {
+    setState(
+      produce<State>(state => {
+        const chatIndex = state.chats.findIndex(chat => chat.id === chatId)
+        const chat = state.chats[chatIndex]
+        if (chat) {
+          state.chats[chatIndex].messages = messages
+        }
       })
     )
   }
