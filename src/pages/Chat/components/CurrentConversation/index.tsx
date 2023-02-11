@@ -123,8 +123,8 @@ export function CurrentConversation() {
   }, [activeChat?.messages])
 
   return (
-    <div className="hidden flex-1 flex-col rounded-3xl border-2 border-app-backgroundLight p-4 lg:flex">
-      {activeChat && activeChatUser && (
+    <div className="hidden flex-1 flex-col items-center justify-center rounded-3xl border-2 border-app-backgroundLight p-4 lg:flex">
+      {activeChat && activeChatUser ? (
         <>
           <header className="relative z-10 flex w-full items-center justify-between rounded-full bg-app-backgroundLight to-transparent py-2 px-4 after:pointer-events-none after:absolute after:left-0 after:-bottom-20 after:h-20 after:w-full after:bg-gradient-to-b after:from-app-backgroundLight/50 after:content-[''] ">
             <div className="flex items-center justify-start gap-4">
@@ -142,7 +142,7 @@ export function CurrentConversation() {
               </div>
             </div>
           </header>
-          <main className="flex flex-1 flex-col justify-between overflow-y-scroll pt-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-app-backgroundLight scrollbar-track-rounded-full scrollbar-thumb-rounded-full">
+          <main className="flex w-full flex-1 flex-col justify-between overflow-y-scroll pt-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-app-backgroundLight scrollbar-track-rounded-full scrollbar-thumb-rounded-full">
             <div className="flex-1">
               <div className="mb-4 w-full text-center text-app-light">
                 <span className="rounded-full bg-app-backgroundLight py-2 px-3">
@@ -162,7 +162,7 @@ export function CurrentConversation() {
           </main>
           <form
             onSubmit={handleAddNewMessage}
-            className="group flex items-center justify-between gap-8 rounded-full border border-transparent bg-app-backgroundLight p-2 px-4 focus-within:border-app-light/30"
+            className="group flex w-full items-center justify-between gap-8 rounded-full border border-transparent bg-app-backgroundLight p-2 px-4 focus-within:border-app-light/30"
           >
             <TextareaAutosize
               name="message"
@@ -182,6 +182,10 @@ export function CurrentConversation() {
             </button>
           </form>
         </>
+      ) : (
+        <h1 className="text-center text-3xl font-bold uppercase text-app-light">
+          Clique em uma conversa para iniciar o chat!
+        </h1>
       )}
     </div>
   )
