@@ -8,6 +8,7 @@ module.exports = {
       colors: {
         app: { // App colors
             primary: "#7C01F6",
+            primaryDark: "#AC5BFD",
             secondary: "#EDDBFF",
             background: "#161616",
             backgroundLight: '#1f1f1f',
