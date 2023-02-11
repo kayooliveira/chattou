@@ -30,14 +30,7 @@ export function CurrentConversationMessageBubble({
       >
         {message}
 
-        <span
-          className={classNames(
-            'relative bottom-0 float-right mt-2 text-xs leading-none text-app-light',
-            {
-              'pl-6': messageAction === 'in'
-            }
-          )}
-        >
+        <span className="relative bottom-0 float-right mt-2 pl-6 text-xs leading-none text-app-light">
           {messageTime}
         </span>
       </p>
