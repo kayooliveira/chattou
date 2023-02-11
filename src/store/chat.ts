@@ -22,16 +22,17 @@ export interface Chat {
   image: string
   messages: Message[]
 }
-
 interface State {
   chats: Chat[]
-  currentChat: string
+  currentConversation: string
   isChatsLoading?: boolean
   isMessagesLoading?: boolean
   createChat: (user1Id: string, user2Id: string) => Promise<void>
   addMessage: (message: Message) => Promise<void>
   setChatMessages: (chatId: string, messages: Message[]) => void
+  setChatMessage: (chatId: string, message: Message) => void
   setChats: (chats: Chat[]) => void
+  setCurrentConversation: (chatId: string) => void
 }
 
 const MessageInitialState: Message = {
@@ -57,7 +58,7 @@ const ChatsInitialState: Chat[] = [
 
 export const useChatStore = create<State>(setState => ({
   chats: ChatsInitialState,
-  currentChat: '',
+  currentConversation: '',
   createChat: async (user1Id, user2Id) => {
     const usersRef = collection(database, 'users')
 
@@ -108,6 +109,24 @@ export const useChatStore = create<State>(setState => ({
         if (chat) {
           state.chats[chatIndex].messages = messages
         }
+      })
+    )
+  },
+  setChatMessage: (chatId, message) => {
+    setState(
+      produce<State>(state => {
+        const chatIndex = state.chats.findIndex(chat => chat.id === chatId)
+        const chat = state.chats[chatIndex]
+        if (chat) {
+          state.chats[chatIndex].messages.push(message)
+        }
+      })
+    )
+  },
+  setCurrentConversation: chatId => {
+    setState(
+      produce<State>(state => {
+        state.currentConversation = chatId
       })
     )
   }
