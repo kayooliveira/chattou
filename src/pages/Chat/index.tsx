@@ -11,6 +11,7 @@ import { useEffect } from 'react'
 import { useAuthStore } from 'store/auth'
 import { Chat as IChat, useChatStore } from 'store/chat'
 
+import { CurrentConversation } from './components/CurrentConversation'
 import { Footer } from './components/Footer'
 import { Header } from './components/Header'
 import { RecentConversations } from './components/RecentConversations'
@@ -42,12 +43,14 @@ export function Chat() {
                   }
                 }
               })
-              const chat = {
+              const chat: IChat = {
+                id: document.id,
                 lastMessage: data.lastMessage,
                 lastMessageDate: new Date(data.lastMessageDate.seconds * 1000),
                 name: data.name,
                 users: data.users,
-                image: user2Data?.profilePic
+                image: user2Data?.profilePic,
+                messages: []
               }
               setChats([...chats, chat])
             }
@@ -60,12 +63,12 @@ export function Chat() {
   }, [user])
 
   return (
-    <div className="mx-auto flex h-full max-h-screen max-w-screen-2xl gap-4 bg-app-background p-8">
-      <div className="flex max-w-full flex-col md:w-2/5 lg:w-1/3 ">
+    <div className="mx-auto flex h-screen max-h-screen max-w-screen-2xl gap-4 bg-app-background p-8">
+      <div className="relative flex h-full max-w-full flex-col md:w-2/5 lg:w-1/3">
         <Header />
         <RecentConversations />
       </div>
-      <div className="hidden flex-1 bg-app-light p-4 lg:block"></div>
+      <CurrentConversation />
       <Footer />
     </div>
   )
