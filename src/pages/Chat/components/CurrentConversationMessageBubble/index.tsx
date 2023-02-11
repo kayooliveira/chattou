@@ -24,7 +24,8 @@ export function CurrentConversationMessageBubble({
           {
             'rounded-tr-none bg-gradient-to-l from-app-primaryDark to-app-primary':
               messageAction === 'out',
-            'rounded-tl-none bg-app-backgroundLight': messageAction === 'in'
+            'rounded-tl-none bg-app-backgroundLight text-app-light':
+              messageAction === 'in'
           }
         )}
       >
