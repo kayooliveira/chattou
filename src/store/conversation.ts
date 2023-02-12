@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore'
 import { produce } from 'immer'
 import { database } from 'lib/firebase'
+import { toast } from 'react-hot-toast'
 import { v4 } from 'uuid'
 import { create } from 'zustand'
 
@@ -43,6 +44,10 @@ export interface CurrentConversation {
 interface State {
   conversations: Conversation[]
   currentConversation?: CurrentConversation
+  isCurrentConversationOpen: boolean
+  toggleCurrentConversation: () => void
+  openCurrentConversation: () => void
+  closeCurrentConversation: () => void
   isChatsLoading?: boolean
   createConversation: (user1: string, user2: string) => Promise<void>
   addNewConversation: (conversation: Conversation) => void
@@ -62,7 +67,7 @@ interface State {
 const ConversationsInitialState: Conversation[] = []
 
 /**
- * @version 1.0.0 // ! Última refatoração: 11/02/2023
+ * @version 1.0.1 // ! Última refatoração: 11/02/2023
  *
  * @author Kayo Oliveira <contato@kayooliveira.com>
  *
@@ -73,6 +78,38 @@ const ConversationsInitialState: Conversation[] = []
 export const useConversationStore = create<State>((setState, getState) => ({
   conversations: ConversationsInitialState,
   currentConversation: undefined,
+  isCurrentConversationOpen: false,
+  toggleCurrentConversation: () => {
+    const actualState = getState()
+    if (!actualState.currentConversation) {
+      toast.error('Selecione uma mensagem primeiro!')
+      return
+    }
+    setState(
+      produce<State>(state => {
+        state.isCurrentConversationOpen = !actualState.isCurrentConversationOpen
+      })
+    )
+  },
+  openCurrentConversation: () => {
+    const actualState = getState()
+    if (!actualState.currentConversation) {
+      toast.error('Selecione uma mensagem primeiro!')
+      return
+    }
+    setState(
+      produce<State>(state => {
+        state.isCurrentConversationOpen = true
+      })
+    )
+  },
+  closeCurrentConversation: () => {
+    setState(
+      produce<State>(state => {
+        state.isCurrentConversationOpen = false
+      })
+    )
+  },
   createConversation: async (user1, user2) => {
     const usersRef = collection(database, 'users') // ? Referência de usuários no banco de dados.
 
@@ -99,6 +136,7 @@ export const useConversationStore = create<State>((setState, getState) => ({
       setState(
         // ? Adiciona a nova conversa à lista de conversas no estado.
         produce<State>(state => {
+          state.isCurrentConversationOpen = true
           state.conversations?.push(conversation)
         })
       )
@@ -195,6 +233,7 @@ export const useConversationStore = create<State>((setState, getState) => ({
           setState(
             // ? Define os dados da currentConversation.
             produce<State>(state => {
+              state.isCurrentConversationOpen = true
               state.currentConversation = {
                 conversationId: conversation.id,
                 messages: conversation.messages,
