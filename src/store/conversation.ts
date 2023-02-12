@@ -68,7 +68,7 @@ interface State {
 const ConversationsInitialState: Conversation[] = []
 
 /**
- * @version 1.0.3 // ! Última refatoração: 11/02/2023
+ * @version 1.0.4 // ! Última refatoração: 11/02/2023
  *
  * @author Kayo Oliveira <contato@kayooliveira.com>
  *
@@ -330,6 +330,14 @@ export const useConversationStore = create<State>((setState, getState) => ({
       await updateDoc(messagesDoc, {
         isRead: true
       }) // ? Atualiza o campo isRead da mensagem.
+    })
+
+    const conversationDoc = doc(
+      database,
+      `conversations/${currentConversation.conversationId}`
+    )
+    await updateDoc(conversationDoc, {
+      unreadMessagesQnt: 0
     })
   }
 }))
