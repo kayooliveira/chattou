@@ -77,6 +77,10 @@ export function CurrentConversation(): React.ReactElement {
     state => state.addMessageToCurrentConversation
   )
 
+  const setCurrentConversationMessagesAsRead = useConversationStore(
+    state => state.setCurrentConversationMessagesAsRead
+  )
+
   const messagesEndRef = useRef<HTMLDivElement>(null) // ? Referência da div final das mensagens (utilizado para fazer com que o usuário seja levado até a última mensagem recebida ou enviada).
 
   const formRef = useRef<HTMLFormElement>(null) // ? Referência do formulário (utilizado para forçar o submit quando o usuário pressionar as teclas "Enter" enquanto estiver com foco na tag textarea).
@@ -120,7 +124,7 @@ export function CurrentConversation(): React.ReactElement {
 
       const messagesQuery = query(messagesRef, orderBy('time', 'asc')) // ? Ordena as mensagens da mais recente.
 
-      const unsub = onSnapshot(messagesQuery, querySnapshot => {
+      const unsub = onSnapshot(messagesQuery, async querySnapshot => {
         const messages: Message[] = [] // ? Variável que conterá as mensagens recebidas do banco de dados.
 
         querySnapshot.forEach(messageDoc => {
@@ -142,7 +146,13 @@ export function CurrentConversation(): React.ReactElement {
             }
           }
         })
-
+        const unreadMessages = messages.filter(
+          message => message.sender !== user.id && !message.isRead
+        )
+        if (unreadMessages) {
+          const unreadMessagesIds = unreadMessages.map(message => message.id)
+          await setCurrentConversationMessagesAsRead(unreadMessagesIds)
+        }
         setActiveConversation(
           // ? Seta os dados das mensagens no estado do componente.
           produce<Conversation>(state => {
