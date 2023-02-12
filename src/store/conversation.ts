@@ -62,12 +62,13 @@ interface State {
     conversationId: string,
     message: Message
   ) => Promise<void>
+  setCurrentConversationMessagesAsRead: (messageIds: string[]) => Promise<void>
 }
 
 const ConversationsInitialState: Conversation[] = []
 
 /**
- * @version 1.0.1 // ! Última refatoração: 11/02/2023
+ * @version 1.0.3 // ! Última refatoração: 11/02/2023
  *
  * @author Kayo Oliveira <contato@kayooliveira.com>
  *
@@ -124,19 +125,47 @@ export const useConversationStore = create<State>((setState, getState) => ({
 
     if (user2Data) {
       // ? Verifica se o usuário 2 foi encontrado
+      const actualState = getState() // ? O estado atual
+      const actualConversations = actualState.conversations // ? As conversas do estado atual.
+      const conversationExists = actualConversations.find(
+        ac => ac.users.includes(user1) && ac.users.includes(user2)
+      ) // ? Busca nas conversas do estado atual se a conversa que o usuário quer adicionar já existe.
+
+      if (conversationExists) {
+        // ? Se a conversa já existir, define a mesma como a conversa atualmente ativa.
+        setState(
+          produce<State>(state => {
+            state.currentConversation = {
+              conversationId: conversationExists.id,
+              messages: conversationExists.messages,
+              with: user2Data as User
+            }
+          })
+        )
+        return // ? Retorna para prevenir duplicação de dados.
+      }
+
       const conversationId = v4() // ? Definindo o ID únido da conversa.
       const conversation: Conversation = {
         id: conversationId,
         users: [user1, user2],
         messages: [],
         image: user2Data.avatar,
-        name: user2Data.name
+        name: user2Data.name,
+        lastMessage: '',
+        lastMessageDate: new Date(),
+        unreadMessagesQnt: 0
       }
 
       setState(
         // ? Adiciona a nova conversa à lista de conversas no estado.
         produce<State>(state => {
           state.isCurrentConversationOpen = true
+          state.currentConversation = {
+            conversationId: conversation.id,
+            messages: conversation.messages,
+            with: user2Data as User
+          }
           state.conversations?.push(conversation)
         })
       )
@@ -147,6 +176,7 @@ export const useConversationStore = create<State>((setState, getState) => ({
   },
   setConversations: conversations => {
     setState(
+      // ? Seta as conversas recebidas no estado da aplicação.
       produce<State>(state => {
         state.conversations = conversations
       })
@@ -211,6 +241,13 @@ export const useConversationStore = create<State>((setState, getState) => ({
   },
   setCurrentConversation: async (userId, conversationId) => {
     const state = getState() // ? Pega os dados do estado atual.
+
+    if (
+      state.currentConversation &&
+      state.currentConversation.conversationId === conversationId
+    )
+      return
+
     const conversation = state.conversations.find(c => c.id === conversationId)
     if (conversation) {
       // ? Verifica se a conversa existe no estado, caso exista, adiciona a mesma como a conversa ativa no momento.
@@ -262,5 +299,37 @@ export const useConversationStore = create<State>((setState, getState) => ({
     )
 
     await setDoc(messagesDoc, messageWithoutId)
+  },
+  setCurrentConversationMessagesAsRead: async messageIds => {
+    const actualState = getState() // ? Estado atual.
+
+    const currentConversation = actualState.currentConversation // ? Conversa atual do usuário.
+
+    if (!currentConversation) return // ? Caso a conversa não existir, retorna.
+
+    const currentConversationConversationIndex =
+      actualState.conversations.findIndex(
+        conversation => conversation.id === currentConversation.conversationId
+      ) // ? Conversation no estado global.
+
+    setState(
+      produce<State>(state => {
+        state.conversations[
+          currentConversationConversationIndex
+        ].unreadMessagesQnt = 0
+      })
+    )
+    messageIds.forEach(async id => {
+      // ? Itera pelos ids das mensagens recebidas.
+      const messagesDoc = doc(
+        database,
+        `conversations/${currentConversation.conversationId}/messages/`,
+        id
+      ) // ? Pega a doc da mensagem correspondente ao id iterado no momento.
+
+      await updateDoc(messagesDoc, {
+        isRead: true
+      }) // ? Atualiza o campo isRead da mensagem.
+    })
   }
 }))
