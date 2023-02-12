@@ -1,4 +1,4 @@
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, onSnapshot } from 'firebase/firestore'
 import { database } from 'lib/firebase'
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react'
 import { IoMdOptions, IoMdSearch } from 'react-icons/io'
@@ -27,8 +27,8 @@ export function Header(): React.ReactElement {
       const getUsers = async () => {
         // ? Ao carregar o componente, busca por todos os usuários cadastrados e guarda os dados dos mesmos no estado do componente.
         const usersRef = collection(database, 'users')
-        await getDocs(usersRef).then(snapshot => {
-          snapshot.forEach(udoc => {
+        onSnapshot(usersRef, usersSnap => {
+          usersSnap.forEach(udoc => {
             if (udoc.exists()) {
               if (udoc.id === user.id) return // ? Verifica se o usuário iterado no momento tem o ID igual ao usuário ativo, se sim, pula esta iteração.
               // ? Verifica se a doc existe.
