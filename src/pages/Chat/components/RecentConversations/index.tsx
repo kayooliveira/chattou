@@ -1,3 +1,4 @@
+import notificationSound from 'assets/sounds/notification.wav'
 import {
   collection,
   doc,
@@ -75,6 +76,7 @@ export function RecentConversations(): React.ReactElement {
                   }
                 }
               })
+              if (!user2Data) return
 
               const messageCollection = collection(
                 database,
@@ -90,6 +92,17 @@ export function RecentConversations(): React.ReactElement {
                 if (messageDoc.exists()) {
                   const messageData = messageDoc.data()
                   if (messageData) {
+                    if (!messageData.isRead && messageData.sender !== user.id) {
+                      const notification = new Notification(user2Data.name, {
+                        body: messageData.body,
+                        silent: true,
+                        icon: user2Data.avatar
+                      })
+                      const notificationAudio = new Audio(notificationSound)
+                      notificationAudio.volume = 1
+                      notificationAudio.play()
+                      notification.close()
+                    }
                     messages.push({
                       ...(messageData as Message),
                       time: new Date(messageData.time.seconds * 1000)
@@ -100,6 +113,7 @@ export function RecentConversations(): React.ReactElement {
               const unreadMessagesQnt = messages.filter(
                 message => message.sender !== user.id && !message.isRead
               )
+
               const conversation: Conversation = {
                 // ? Cria uma nova conversa com os dados resgatados e envia para o banco de dados e estado global.
                 id: document.id,
