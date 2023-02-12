@@ -1,68 +1,142 @@
 import { faker } from '@faker-js/faker'
+import classNames from 'classnames'
 import { format } from 'date-fns'
+import EmojiPicker, {
+  // eslint-disable-next-line import/named
+  EmojiClickData,
+  EmojiStyle,
+  Theme
+} from 'emoji-picker-react'
 import {
   collection,
   onSnapshot,
   query,
   orderBy,
-  where,
   doc,
   getDoc
 } from 'firebase/firestore'
 import { produce } from 'immer'
 import { database } from 'lib/firebase'
-import { FormEvent, useRef, useEffect, ChangeEvent, useState } from 'react'
-import { IoMdSend } from 'react-icons/io'
+import {
+  FormEvent,
+  useRef,
+  useEffect,
+  ChangeEvent,
+  useState,
+  KeyboardEvent
+} from 'react'
+import { IoMdHappy, IoMdSend } from 'react-icons/io'
 import TextareaAutosize from 'react-textarea-autosize'
 import { useAuthStore, User } from 'store/auth'
-import { Chat, Message, useChatStore } from 'store/chat'
+import { Conversation, Message, useConversationStore } from 'store/conversation'
 import { v4 } from 'uuid'
 
 import { CurrentConversationMessageBubble } from '../CurrentConversationMessageBubble'
 
-export function CurrentConversation() {
-  const [activeChat, setActiveChat] = useState<Chat | undefined>(undefined)
-  const [activeChatUser, setActiveChatUser] = useState<User | undefined>(
-    undefined
-  )
-  const currentConversation = useChatStore(state => state.currentConversation)
-  const chats = useChatStore(state => state.chats)
-  const user = useAuthStore(state => state.user)
-  const addMessage = useChatStore(state => state.addMessage)
-  const [currentMessage, setCurrentMessage] = useState<string>('')
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+/**
+ * @version 0.0.1
+ *
+ * @author Kayo Oliveira <contato@kayooliveira.com>
+ *
+ * @description Exibe a conversa atual do usuário em tela, o componente também é responsável por gerenciar mensagens recebidas e enviadas pelo usuário bem como envio de emojis e etc.
+ *
+ * @return ReactElement
+ */
 
-  function scrollToBottom() {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+export function CurrentConversation(): React.ReactElement {
+  const [activeConversation, setActiveConversation] = useState<
+    Conversation | undefined
+  >(undefined) // ? Estado responsável por armazenar os dados da conversa ativa no momento.
+
+  const [activeConversationUser, setActiveConversationUser] = useState<
+    User | undefined
+  >(undefined) // ? Estado responsável por armazenar os dados do usuário 2 da conversa atualmente ativa.
+
+  const [currentMessage, setCurrentMessage] = useState<string>('') // ? Estado responsável por armazenar o valor do input onde o usuário irá digitar a mensagem a ser enviada.
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false) // ? Estado responsável por armazenar se deve ou não mostrar o componente EmojiPicker.
+
+  const currentConversation = useConversationStore(
+    state => state.currentConversation
+  )
+
+  const conversations = useConversationStore(state => state.conversations)
+
+  const user = useAuthStore(state => state.user)
+
+  const addMessageToCurrentConversation = useConversationStore(
+    state => state.addMessageToCurrentConversation
+  )
+
+  const messagesEndRef = useRef<HTMLDivElement>(null) // ? Referência da div final das mensagens (utilizado para fazer com que o usuário seja levado até a última mensagem recebida ou enviada).
+
+  const formRef = useRef<HTMLFormElement>(null) // ? Referência do formulário (utilizado para forçar o submit quando o usuário pressionar as teclas "Enter" enquanto estiver com foco na tag textarea).
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null) // ? Referência da tag textarea (utilizado para garantir que o foco seja retornado para o textarea após o usuário selecionar um emoji da lista).
+
+  /**
+   * @version 0.0.1
+   *
+   * @author Kayo Oliveira <contato@kayooliveira.com>
+   *
+   * @description Função responsável por levar o usuário até a última mensagem recebida ou enviada.
+   *
+   * @return void
+   */
+
+  function scrollToBottom(): void {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }) // ? A propriedade behavior: 'smooth' é definida aqui para que o scroll tenha uma animação mais suave.
   }
+
+  /**
+   * @version 0.0.1
+   *
+   * @author Kayo Oliveira <contato@kayooliveira.com>
+   *
+   * @description Responsável por definir a conversa ativa no momento e resgatar os dados da mesma do banco de dados.
+   */
 
   useEffect(() => {
     if (currentConversation) {
-      setActiveChat(chats.find(chat => chat.id === currentConversation))
-      const messagesRef = collection(database, 'messages')
-      const messagesQuery = query(
-        messagesRef,
-        orderBy('time', 'asc'),
-        where('chatId', '==', currentConversation)
-      )
+      setActiveConversation(
+        conversations.find(
+          conversation => conversation.id === currentConversation.conversationId
+        )
+      ) // ? Se houver uma conversa ativa, seta a mesma no estado do componente.
+
+      const messagesRef = collection(
+        database,
+        `conversations/${currentConversation.conversationId}/messages`
+      ) // ? Referência do banco de dados das mensagens da conversa atualmente selecionada.
+
+      const messagesQuery = query(messagesRef, orderBy('time', 'asc')) // ? Ordena as mensagens da mais recente.
+
       const unsub = onSnapshot(messagesQuery, querySnapshot => {
-        const messages: Message[] = []
+        const messages: Message[] = [] // ? Variável que conterá as mensagens recebidas do banco de dados.
+
         querySnapshot.forEach(messageDoc => {
           if (messageDoc.exists()) {
+            // ? Se a doc da mensagem existir
+
             const messageData = messageDoc.data()
+
             if (messageData) {
+              // ? Se os dados da mensagem existir então adiciona a mensagem atual na variavel 'messages' definida anteriormente.
+
               const newMessageData = {
                 id: messageDoc.id,
                 ...messageData,
                 time: new Date(messageData.time.seconds * 1000)
               } as Message
+
               messages.push(newMessageData)
             }
           }
         })
 
-        setActiveChat(
-          produce<Chat>(state => {
+        setActiveConversation(
+          // ? Seta os dados das mensagens no estado do componente.
+          produce<Conversation>(state => {
             state.messages = messages
           })
         )
@@ -71,73 +145,186 @@ export function CurrentConversation() {
     }
   }, [currentConversation])
 
-  function handleChangeMessageContent(e: ChangeEvent<HTMLTextAreaElement>) {
-    setCurrentMessage(e.target.value)
+  /**
+   * @version 0.0.1
+   *
+   * @author Kayo Oliveira <contato@kayooliveira.com>
+   *
+   * @description Função responsável por gerenciar o valor do input referente a mensagem atual que o usuário está escrevendo.
+   *
+   * @param e ChangeEvent
+   *
+   * @return void
+   */
+
+  function handleChangeMessageContent(
+    e: ChangeEvent<HTMLTextAreaElement>
+  ): void {
+    const value = e.target.value
+    setCurrentMessage(value)
+    if (showEmojiPicker) {
+      // ? Se o EmojiPicker estiver aberto, então o fecha.
+      toggleEmojiPicker()
+    }
   }
 
   async function handleAddNewMessage(e: FormEvent<HTMLFormElement>) {
-    if (activeChat) {
-      e.preventDefault()
-      const messageId = v4()
-      await addMessage({
+    e.preventDefault() // ? Previne que ocorra um reload da página ao enviar o formulário.
+    if (showEmojiPicker) {
+      // ? Seo EmojiPicker estiver aberto, então o fecha.
+      toggleEmojiPicker()
+    }
+    if (currentMessage.trim().length <= 0) return // ? Se o conteúdo da mensagem for vazio então retorna.
+
+    if (activeConversation) {
+      // ? Caso haja uma conversa ativa então adiciona o conteúdo da nova mensagem no banco de dados e reseta o estado do currentMessage.
+      const messageId = v4() // ? Gera um novo ID para a mensagem.
+      await addMessageToCurrentConversation(activeConversation.id, {
         id: messageId,
-        chatId: currentConversation,
-        content: currentMessage,
-        contentType: 'text',
-        recipient:
-          activeChat.users.find(chatUser => chatUser !== user.id) || '',
+        body: currentMessage.trimStart().trimEnd(),
+        type: 'text',
         sender: user.id,
-        time: new Date()
+        time: new Date(),
+        isRead: false
       })
       setCurrentMessage('')
     }
   }
-  function formatMessageTime(date: Date) {
+
+  /**
+   * @version 0.0.1
+   *
+   * @author Kayo Oliveira <contato@kayooliveira.com>
+   *
+   * @description Retorna um horário no formato HH:mm baseado na data recebida.
+   *
+   * @param date Data para ser formatada.
+   *
+   * @return {string} string Hora no formato HH:mm ex: 12:00
+   */
+
+  function formatMessageTime(date: Date): string {
     const formattedDateToTime = format(date, 'HH:mm')
     return formattedDateToTime
   }
 
+  /**
+   * @version 0.0.1
+   *
+   * @author Kayo Oliveira <contato@kayooliveira.com>
+   *
+   * @description Função que executa cada vez que a conversa ativa muda, ela é executada para carregar os dados da nova conversa.
+   */
+
   useEffect(() => {
-    if (activeChat) {
-      const getActiveChatUser = async () => {
-        const usersRef = collection(database, 'users')
+    const controller = new AbortController()
+    if (activeConversation) {
+      const getActiveConversationUser = async () => {
+        const usersRef = collection(database, 'users') // ? Referência dos usuários no banco de dados.
         const usersDoc = doc(
           usersRef,
-          activeChat.users.find(activeChatUser => activeChatUser !== user.id)
-        )
+          activeConversation.users.find(
+            activeConversationUser => activeConversationUser !== user.id
+          )
+        ) // ? Doc do usuário 2 da conversa atual.
+
         await getDoc(usersDoc).then(doc => {
           if (doc.exists()) {
+            // ? Se a doc do usuário existir
             const activeUserData = doc.data() as User
+
             if (activeUserData) {
-              setActiveChatUser(activeUserData)
+              // ? Se existir dados na doc do usuário então seta o mesmo no estado do componente.
+              setActiveConversationUser(activeUserData)
             }
           }
         })
       }
-      getActiveChatUser()
+      getActiveConversationUser()
     }
-  }, [activeChat])
+    return () => controller.abort()
+  }, [activeConversation])
+
+  /**
+   * @version 0.0.1
+   *
+   * @author Kayo Oliveira <contato@kayooliveira.com>
+   *
+   * @description Função executada cada vez que as mensagens da conversa forem atualizadas, a função da mesma é levar o usuário até a última mensagem enviada ou recebida.
+   */
 
   useEffect(() => {
     scrollToBottom()
-  }, [activeChat?.messages])
+  }, [activeConversation?.messages])
+
+  /**
+   * @version 0.0.1
+   *
+   * @author Kayo Oliveira <contato@kayooliveira.com>
+   *
+   * @description Função responsável por fazer o envio do formulário caso o usuário pressione a tecla 'Enter' e estiver com foco no textarea de conteúdo de nova mensagem.
+   *
+   * @param e KeyboardEvent<HTMLTextareaElement>
+   *
+   * @return void
+   */
+
+  function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>): void {
+    if (e.key === 'Enter' && !e.shiftKey && formRef.current) {
+      e.preventDefault()
+      formRef.current.requestSubmit()
+    }
+  }
+
+  /**
+   * @version 0.0.1
+   *
+   * @author Kayo Oliveira <contato@kayooliveira.com>
+   *
+   * @description Função responsável por mostrar e/ou esconder o EmojiPicker.
+   *
+   * @return void
+   */
+
+  function toggleEmojiPicker(): void {
+    setShowEmojiPicker(!showEmojiPicker)
+    textareaRef.current?.focus()
+  }
+
+  /**
+   * @version 0.0.1
+   *
+   * @author Kayo Oliveira <contato@kayooliveira.com>
+   *
+   * @description Função responsável por adicionar o emoji selecionado pelo usuário no conteúdo da mensagem a ser enviada.
+   *
+   * @param emoji EmojiClickData
+   *
+   * @return void
+   */
+
+  function handleAddEmojiToMessage(emoji: EmojiClickData): void {
+    setCurrentMessage(state => state + emoji.emoji)
+  }
 
   return (
     <div className="hidden flex-1 flex-col items-center justify-center rounded-3xl border-2 border-app-backgroundLight p-4 lg:flex">
-      {activeChat && activeChatUser ? (
+      {activeConversation && activeConversationUser ? (
         <>
           <header className="relative z-10 flex w-full items-center justify-between rounded-full bg-app-backgroundLight to-transparent py-2 px-4 after:pointer-events-none after:absolute after:left-0 after:-bottom-20 after:h-20 after:w-full after:bg-gradient-to-b after:from-app-backgroundLight/50 after:content-[''] ">
             <div className="flex items-center justify-start gap-4">
               <img
-                src={activeChatUser.profilePic}
+                src={activeConversationUser.avatar}
                 className="w-[5rem] rounded-full"
                 referrerPolicy="no-referrer"
                 alt=""
               />
               <div className="flex flex-col items-start justify-center text-app-text">
-                <p className="text-xl font-bold">{activeChatUser.name}</p>
+                <p className="text-xl font-bold">
+                  {activeConversationUser.name}
+                </p>
                 <p className="text-xs text-app-light">
-                  @{faker.internet.userName(activeChatUser.name)}
+                  @{faker.internet.userName(activeConversationUser.name)}
                 </p>
               </div>
             </div>
@@ -146,13 +333,14 @@ export function CurrentConversation() {
             <div className="flex-1">
               <div className="mb-4 w-full text-center text-app-light">
                 <span className="rounded-full bg-app-backgroundLight py-2 px-3">
-                  Este é o início de suas mensagens com <b>{activeChat.name}</b>
+                  Este é o início de suas mensagens com{' '}
+                  <b>{activeConversation.name}</b>
                 </span>
               </div>
-              {activeChat.messages.map(message => (
+              {activeConversation.messages.map(message => (
                 <CurrentConversationMessageBubble
                   key={message.id}
-                  message={message.content}
+                  message={message.body}
                   messageAction={message.sender === user.id ? 'out' : 'in'}
                   messageTime={formatMessageTime(message.time)}
                 />
@@ -161,13 +349,44 @@ export function CurrentConversation() {
             <div ref={messagesEndRef} />
           </main>
           <form
+            ref={formRef}
             onSubmit={handleAddNewMessage}
-            className="group flex w-full items-center justify-between gap-8 rounded-full border border-transparent bg-app-backgroundLight p-2 px-4 focus-within:border-app-light/30"
+            className="relative flex w-full items-center justify-between gap-4 rounded-full border border-transparent bg-app-backgroundLight p-2 px-4 focus-within:border-app-light/30"
           >
+            <div className="absolute bottom-20 left-0">
+              {showEmojiPicker && (
+                <EmojiPicker
+                  height="350px"
+                  lazyLoadEmojis
+                  emojiStyle={EmojiStyle.NATIVE}
+                  onEmojiClick={handleAddEmojiToMessage}
+                  theme={Theme.DARK}
+                  searchPlaceHolder="Buscar"
+                  previewConfig={{
+                    showPreview: false
+                  }}
+                  searchDisabled={true}
+                />
+              )}
+            </div>
+            <button
+              onClick={toggleEmojiPicker}
+              type="button"
+              className={classNames(
+                'rounded-full p-2 text-app-light outline-none transition-colors hover:bg-app-primary',
+                {
+                  'bg-app-primary': showEmojiPicker
+                }
+              )}
+            >
+              <IoMdHappy size="24" />
+            </button>
             <TextareaAutosize
+              ref={textareaRef}
               name="message"
               minRows={1}
               maxRows={6}
+              onKeyDown={handleKeyDown}
               id="message"
               value={currentMessage}
               onChange={handleChangeMessageContent}
@@ -176,7 +395,7 @@ export function CurrentConversation() {
             />
             <button
               type="submit"
-              className="rotate-90 rounded-full bg-app-primary p-2 text-white transition-all group-focus-within:rotate-0 group-hover:rotate-0 hover:bg-app-primary/50"
+              className="ml-4 rounded-full bg-app-primary p-2 text-white transition-all hover:bg-app-primary/50"
             >
               <IoMdSend size="24" />
             </button>
@@ -184,7 +403,7 @@ export function CurrentConversation() {
         </>
       ) : (
         <h1 className="text-center text-3xl font-bold uppercase text-app-light">
-          Clique em uma conversa para iniciar o chat!
+          Clique em uma conversa para iniciar o conversation!
         </h1>
       )}
     </div>
