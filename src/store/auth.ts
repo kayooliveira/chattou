@@ -5,15 +5,6 @@ import { auth, database } from 'lib/firebase'
 import toast from 'react-hot-toast'
 import { create } from 'zustand'
 
-/**
- * @version 1.0.1 // ! Última refatoração: 11/02/2023
- *
- * @author Kayo Oliveira <contato@kayooliveira.com>
- *
- * @description 'Store' responsável pelo gerenciamento do estado de autenticação da aplicação.
- *
- */
-
 export interface User {
   id: string
   name: string
@@ -36,6 +27,15 @@ const userInitialState: User = {
   name: '',
   username: ''
 }
+
+/**
+ * @version 1.0.1 // ! Última refatoração: 11/02/2023
+ *
+ * @author Kayo Oliveira <contato@kayooliveira.com>
+ *
+ * @description 'Store' responsável pelo gerenciamento do estado de autenticação da aplicação.
+ *
+ */
 
 export const useAuthStore = create<State>(setState => ({
   user: userInitialState, // ? Inicia o estado de usuário como "vazio".
