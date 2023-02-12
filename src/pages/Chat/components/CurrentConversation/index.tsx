@@ -329,10 +329,9 @@ export function CurrentConversation(): React.ReactElement {
   return (
     <div
       className={classNames(
-        'flex-1 flex-col items-center justify-center rounded-3xl border-2 border-app-backgroundLight bg-app-background p-4 lg:relative lg:flex',
+        'h-full max-h-full flex-1 flex-col items-center justify-center rounded-3xl border-2 border-app-backgroundLight bg-app-background p-4 lg:relative lg:flex',
         {
-          'fixed top-0 left-0 z-40 h-screen max-h-screen w-screen p-2 ':
-            isCurrentConversationOpen,
+          'fixed top-0 left-0 z-40  w-screen p-2 ': isCurrentConversationOpen,
           'hidden ': !isCurrentConversationOpen
         }
       )}
