@@ -25,6 +25,7 @@ import {
   useState,
   KeyboardEvent
 } from 'react'
+import { isMobile } from 'react-device-detect'
 import { IoMdCloseCircle, IoMdHappy, IoMdSend } from 'react-icons/io'
 import TextareaAutosize from 'react-textarea-autosize'
 import { useAuthStore, User } from 'store/auth'
@@ -34,7 +35,7 @@ import { v4 } from 'uuid'
 import { CurrentConversationMessageBubble } from '../CurrentConversationMessageBubble'
 
 /**
- * @version 0.0.1
+ * @version 0.0.2
  *
  * @author Kayo Oliveira <contato@kayooliveira.com>
  *
@@ -320,7 +321,7 @@ export function CurrentConversation(): React.ReactElement {
       className={classNames(
         'flex-1 flex-col items-center justify-center rounded-3xl border-2 border-app-backgroundLight bg-app-background p-4 lg:relative lg:flex',
         {
-          'fixed top-0 left-0 h-screen max-h-screen w-screen p-2 ':
+          'fixed top-0 left-0 z-40 h-screen max-h-screen w-screen p-2 ':
             isCurrentConversationOpen,
           'hidden ': !isCurrentConversationOpen
         }
@@ -345,16 +346,16 @@ export function CurrentConversation(): React.ReactElement {
                 </p>
               </div>
             </div>
-            {isCurrentConversationOpen && (
+            {isCurrentConversationOpen && isMobile && (
               <button
                 onClick={toggleCurrentConversation}
-                className="p-2 outline-none focus:bg-app-primary hover:bg-app-primary"
+                className="rounded-full p-2 text-app-light outline-none focus:bg-app-primary hover:bg-app-primary"
               >
                 <IoMdCloseCircle size="32" />
               </button>
             )}
           </header>
-          <main className="flex h-[calc(100%_-_14rem)] w-full flex-1 flex-col justify-between overflow-y-scroll pt-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-app-backgroundLight scrollbar-track-rounded-full scrollbar-thumb-rounded-full">
+          <main className="flex h-[calc(100%_-_9.5rem)] w-full flex-1 flex-col justify-between overflow-y-scroll pt-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-app-backgroundLight scrollbar-track-rounded-full scrollbar-thumb-rounded-full">
             <div className="flex-1">
               <div className="mb-4 w-full text-center text-app-light">
                 <span className="rounded-full bg-app-backgroundLight py-2 px-3">
@@ -427,7 +428,7 @@ export function CurrentConversation(): React.ReactElement {
           </form>
         </>
       ) : (
-        <h1 className="text-center text-3xl font-bold uppercase text-app-light">
+        <h1 className="block p-4 text-center text-3xl font-bold uppercase text-app-light">
           Clique em uma conversa para iniciar o conversation!
         </h1>
       )}
