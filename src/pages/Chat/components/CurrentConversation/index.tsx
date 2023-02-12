@@ -126,7 +126,6 @@ export function CurrentConversation(): React.ReactElement {
 
       const unsub = onSnapshot(messagesQuery, async querySnapshot => {
         const messages: Message[] = [] // ? Variável que conterá as mensagens recebidas do banco de dados.
-
         querySnapshot.forEach(messageDoc => {
           if (messageDoc.exists()) {
             // ? Se a doc da mensagem existir
@@ -329,7 +328,7 @@ export function CurrentConversation(): React.ReactElement {
   return (
     <div
       className={classNames(
-        'fixed top-0 left-0 z-40 flex h-full w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-3xl border-2 border-app-backgroundLight bg-app-background p-2 lg:relative lg:relative lg:p-4',
+        'fixed top-0 left-0 z-40 flex h-full w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-3xl border-2 border-app-backgroundLight bg-app-background p-2 lg:relative lg:p-4',
         {
           'hidden ': !isCurrentConversationOpen
         }
