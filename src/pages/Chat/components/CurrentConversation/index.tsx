@@ -25,7 +25,7 @@ import {
   useState,
   KeyboardEvent
 } from 'react'
-import { IoMdHappy, IoMdSend } from 'react-icons/io'
+import { IoMdCloseCircle, IoMdHappy, IoMdSend } from 'react-icons/io'
 import TextareaAutosize from 'react-textarea-autosize'
 import { useAuthStore, User } from 'store/auth'
 import { Conversation, Message, useConversationStore } from 'store/conversation'
@@ -61,6 +61,14 @@ export function CurrentConversation(): React.ReactElement {
   )
 
   const conversations = useConversationStore(state => state.conversations)
+
+  const isCurrentConversationOpen = useConversationStore(
+    state => state.isCurrentConversationOpen
+  )
+
+  const toggleCurrentConversation = useConversationStore(
+    state => state.toggleCurrentConversation
+  )
 
   const user = useAuthStore(state => state.user)
 
@@ -308,10 +316,19 @@ export function CurrentConversation(): React.ReactElement {
   }
 
   return (
-    <div className="hidden flex-1 flex-col items-center justify-center rounded-3xl border-2 border-app-backgroundLight p-4 lg:flex">
+    <div
+      className={classNames(
+        'flex-1 flex-col items-center justify-center rounded-3xl border-2 border-app-backgroundLight bg-app-background p-4 lg:relative lg:flex',
+        {
+          'fixed top-0 left-0 h-screen max-h-screen w-screen p-2 ':
+            isCurrentConversationOpen,
+          'hidden ': !isCurrentConversationOpen
+        }
+      )}
+    >
       {activeConversation && activeConversationUser ? (
         <>
-          <header className="relative z-10 flex w-full items-center justify-between rounded-full bg-app-backgroundLight to-transparent py-2 px-4 after:pointer-events-none after:absolute after:left-0 after:-bottom-20 after:h-20 after:w-full after:bg-gradient-to-b after:from-app-backgroundLight/50 after:content-[''] ">
+          <header className="relative z-10 flex w-full items-center justify-between rounded-[2rem] rounded-bl-none rounded-br-none bg-app-backgroundLight to-transparent py-2 px-4 after:pointer-events-none after:absolute after:left-0 after:-bottom-20 after:h-20 after:w-full after:bg-gradient-to-b after:from-app-backgroundLight/50 after:content-[''] ">
             <div className="flex items-center justify-start gap-4">
               <img
                 src={activeConversationUser.avatar}
@@ -328,8 +345,16 @@ export function CurrentConversation(): React.ReactElement {
                 </p>
               </div>
             </div>
+            {isCurrentConversationOpen && (
+              <button
+                onClick={toggleCurrentConversation}
+                className="p-2 outline-none focus:bg-app-primary hover:bg-app-primary"
+              >
+                <IoMdCloseCircle size="32" />
+              </button>
+            )}
           </header>
-          <main className="flex w-full flex-1 flex-col justify-between overflow-y-scroll pt-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-app-backgroundLight scrollbar-track-rounded-full scrollbar-thumb-rounded-full">
+          <main className="flex h-[calc(100%_-_14rem)] w-full flex-1 flex-col justify-between overflow-y-scroll pt-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-app-backgroundLight scrollbar-track-rounded-full scrollbar-thumb-rounded-full">
             <div className="flex-1">
               <div className="mb-4 w-full text-center text-app-light">
                 <span className="rounded-full bg-app-backgroundLight py-2 px-3">
@@ -351,7 +376,7 @@ export function CurrentConversation(): React.ReactElement {
           <form
             ref={formRef}
             onSubmit={handleAddNewMessage}
-            className="relative flex w-full items-center justify-between gap-4 rounded-full border border-transparent bg-app-backgroundLight p-2 px-4 focus-within:border-app-light/30"
+            className="relative flex  w-full items-center justify-between gap-4 rounded-full border border-transparent bg-app-backgroundLight p-2 px-4 focus-within:border-app-light/30"
           >
             <div className="absolute bottom-20 left-0">
               {showEmojiPicker && (
