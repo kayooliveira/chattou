@@ -33,7 +33,7 @@ export function RecentConversationsCard({
   conversationId,
   lastMessage,
   lastMessageDate,
-  unreadMessagesQnt,
+  unreadMessagesQnt = 0,
   avatar
 }: RecentConversationsCardProps): React.ReactElement {
   const setCurrentConversation = useConversationStore(
@@ -95,7 +95,7 @@ export function RecentConversationsCard({
           <p className="text-xs text-app-primary">
             {formatLastMessageDate(lastMessageDate)}
           </p>
-          {unreadMessagesQnt && (
+          {unreadMessagesQnt > 0 && (
             <span className="flex h-4 w-4 items-center justify-center rounded-full bg-app-primary text-xs font-bold text-app-text">
               {unreadMessagesQnt}
             </span>
