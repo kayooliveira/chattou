@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
@@ -11,7 +12,7 @@ import { database } from 'lib/firebase'
 import { useEffect } from 'react'
 import { IoMdClock } from 'react-icons/io'
 import { useAuthStore } from 'store/auth'
-import { Conversation, useConversationStore } from 'store/conversation'
+import { Conversation, Message, useConversationStore } from 'store/conversation'
 
 import { RecentConversationsCard } from '../RecentConversationsCard'
 
@@ -75,15 +76,40 @@ export function RecentConversations(): React.ReactElement {
                 }
               })
 
+              const messageCollection = collection(
+                database,
+                `conversations/${document.id}/messages`
+              )
+              const messageQuery = query(
+                messageCollection,
+                orderBy('time', 'asc')
+              )
+              const messages: Message[] = []
+              const messagesSnap = await getDocs(messageQuery)
+              messagesSnap.forEach(messageDoc => {
+                if (messageDoc.exists()) {
+                  const messageData = messageDoc.data()
+                  if (messageData) {
+                    messages.push({
+                      ...(messageData as Message),
+                      time: new Date(messageData.time.seconds * 1000)
+                    })
+                  }
+                }
+              })
+              const unreadMessagesQnt = messages.filter(
+                message => message.sender !== user.id && !message.isRead
+              )
               const conversation: Conversation = {
                 // ? Cria uma nova conversa com os dados resgatados e envia para o banco de dados e estado global.
                 id: document.id,
                 lastMessage: data.lastMessage,
                 lastMessageDate: new Date(data.lastMessageDate.seconds * 1000),
+                unreadMessagesQnt: unreadMessagesQnt.length,
                 name: user2Data?.name,
                 users: data.users,
                 image: user2Data?.avatar,
-                messages: []
+                messages
               }
               addNewConversation(conversation)
             }
@@ -103,17 +129,20 @@ export function RecentConversations(): React.ReactElement {
       <div className="flex h-full max-h-full w-full flex-col gap-4">
         <div className="flex flex-col justify-start gap-2 after:pointer-events-none after:absolute after:bottom-0 after:h-1/4 after:w-full after:bg-gradient-to-t after:from-app-background after:content-[''] after:lg:hidden">
           {conversations &&
-            conversations.map(conversation => (
-              <RecentConversationsCard
-                key={conversation.id}
-                conversationId={conversation.id}
-                name={conversation.name}
-                lastMessage={conversation.lastMessage}
-                lastMessageDate={conversation.lastMessageDate}
-                unreadMessagesQnt={conversation.unreadMessagesQnt}
-                avatar={conversation.image}
-              />
-            ))}
+            conversations.map(
+              conversation =>
+                conversation.lastMessage && (
+                  <RecentConversationsCard
+                    key={conversation.id}
+                    conversationId={conversation.id}
+                    name={conversation.name}
+                    lastMessage={conversation.lastMessage}
+                    lastMessageDate={conversation.lastMessageDate}
+                    unreadMessagesQnt={conversation.unreadMessagesQnt}
+                    avatar={conversation.image}
+                  />
+                )
+            )}
           <div className="h-20 w-full lg:hidden" />
         </div>
       </div>
