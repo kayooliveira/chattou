@@ -1,4 +1,3 @@
-import { format } from 'date-fns'
 import {
   collection,
   doc,
@@ -12,23 +11,46 @@ import { database } from 'lib/firebase'
 import { useEffect } from 'react'
 import { IoMdClock } from 'react-icons/io'
 import { useAuthStore } from 'store/auth'
-import { Chat, useChatStore } from 'store/chat'
+import { Conversation, useConversationStore } from 'store/conversation'
 
 import { RecentConversationsCard } from '../RecentConversationsCard'
-export function RecentConversations() {
-  const chats = useChatStore(state => state.chats)
+
+/**
+ * @version 0.0.1
+ *
+ * @author Kayo Oliveira <contato@kayooliveira.com>
+ *
+ * @description Mostra as conversas recentes do usuário em tela.
+ *
+ * @return ReactElement
+ */
+
+export function RecentConversations(): React.ReactElement {
+  const conversations = useConversationStore(state => state.conversations)
 
   const user = useAuthStore(state => state.user)
-  const addNewChat = useChatStore(state => state.addNewChat)
+
+  const addNewConversation = useConversationStore(
+    state => state.addNewConversation
+  )
+
+  /**
+   * @version 0.0.1
+   *
+   * @author Kayo Oliveira <contato@kayooliveira.com>
+   *
+   * @description Função responsável por carregar os dados das conversas do usuário e setá-las no estado global da aplicação.
+   */
+
   useEffect(() => {
-    const getChats = async () => {
-      const chatsRef = collection(database, 'chats')
-      const chatsQuery = query(
-        chatsRef,
+    const getConversations = async () => {
+      const conversationsRef = collection(database, 'conversations')
+      const conversationsQuery = query(
+        conversationsRef,
         orderBy('lastMessageDate', 'asc'),
         where('users', 'array-contains', user.id)
       )
-      const unsub = onSnapshot(chatsQuery, querySnap => {
+      const unsub = onSnapshot(conversationsQuery, querySnap => {
         querySnap.forEach(async document => {
           if (document.exists()) {
             const data = document.data()
@@ -36,33 +58,41 @@ export function RecentConversations() {
               const usersDoc = doc(
                 database,
                 'users',
-                data.users.find((chatUser: string) => chatUser !== user.id)
-              )
+                data.users.find(
+                  (conversationUser: string) => conversationUser !== user.id
+                )
+              ) // ? Doc dos usuários no banco de dados.
+
               const user2Data = await getDoc(usersDoc).then(user2Doc => {
+                // ? Pega os dados do usuário 2 da conversa.
                 if (user2Doc.exists()) {
+                  // ? Se a doc existir
                   const data = user2Doc.data()
                   if (data) {
+                    // ? Se existir os dados do usuário na doc então retorna os mesmos para a variável user2Data.
                     return data
                   }
                 }
               })
-              const chat: Chat = {
+
+              const conversation: Conversation = {
+                // ? Cria uma nova conversa com os dados resgatados e envia para o banco de dados e estado global.
                 id: document.id,
                 lastMessage: data.lastMessage,
                 lastMessageDate: new Date(data.lastMessageDate.seconds * 1000),
                 name: user2Data?.name,
                 users: data.users,
-                image: user2Data?.profilePic,
+                image: user2Data?.avatar,
                 messages: []
               }
-              addNewChat(chat)
+              addNewConversation(conversation)
             }
           }
         })
       })
-      return unsub
+      return () => unsub()
     }
-    getChats()
+    getConversations()
   }, [])
   return (
     <section className="-mx-4 flex w-full flex-1 shrink-0 flex-col gap-4 overflow-y-scroll px-4 scrollbar-thin scrollbar-track-app-backgroundLight scrollbar-thumb-app-primary scrollbar-track-rounded-full scrollbar-thumb-rounded-full">
@@ -72,16 +102,16 @@ export function RecentConversations() {
       </span>
       <div className="flex h-full max-h-full w-full flex-col gap-4">
         <div className="flex flex-col justify-start gap-2 after:pointer-events-none after:absolute after:bottom-0 after:h-1/4 after:w-full after:bg-gradient-to-t after:from-app-background after:content-[''] after:lg:hidden">
-          {chats &&
-            chats.map(chat => (
+          {conversations &&
+            conversations.map(conversation => (
               <RecentConversationsCard
-                key={chat.id}
-                chatId={chat.id}
-                name={chat.name}
-                lastMessage={chat.lastMessage}
-                lastMessageTime={format(chat.lastMessageDate, 'dd/MM/yyyy')}
-                messagesQnt={1}
-                profilePic={chat.image}
+                key={conversation.id}
+                conversationId={conversation.id}
+                name={conversation.name}
+                lastMessage={conversation.lastMessage}
+                lastMessageDate={conversation.lastMessageDate}
+                unreadMessagesQnt={conversation.unreadMessagesQnt}
+                avatar={conversation.image}
               />
             ))}
           <div className="h-20 w-full lg:hidden" />
