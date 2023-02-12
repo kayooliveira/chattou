@@ -121,12 +121,12 @@ export function RecentConversations(): React.ReactElement {
     getConversations()
   }, [])
   return (
-    <section className="flex w-full flex-1 shrink-0 flex-col gap-4 overflow-y-scroll scrollbar-thin scrollbar-track-app-backgroundLight scrollbar-thumb-app-primary scrollbar-track-rounded-full scrollbar-thumb-rounded-full lg:px-4">
-      <span className="flex w-fit items-center justify-center gap-2 self-start rounded-full bg-gradient-to-r from-app-primary to-[#B66DFF] py-1.5 px-2.5 text-xs font-bold leading-none text-app-text">
+    <div className="flex max-h-full flex-col gap-4 overflow-y-scroll scrollbar-thin scrollbar-track-app-backgroundLight scrollbar-thumb-app-primary scrollbar-track-rounded-full scrollbar-thumb-rounded-full">
+      <span className="flex w-fit items-center justify-center gap-2 self-start rounded-full bg-gradient-to-r from-app-primary to-[#B66DFF] py-2 px-2.5 text-xs font-bold leading-none text-app-text">
         Recentes
         <IoMdClock />
       </span>
-      <div className="flex h-full max-h-full w-full flex-col gap-4">
+      <div className="flex w-full flex-col gap-4">
         <div className="flex flex-col justify-start gap-2 after:pointer-events-none after:absolute after:bottom-0 after:h-1/4 after:w-full after:bg-gradient-to-t after:from-app-background after:content-[''] after:lg:hidden">
           {conversations &&
             conversations.map(
@@ -146,6 +146,6 @@ export function RecentConversations(): React.ReactElement {
           <div className="h-20 w-full lg:hidden" />
         </div>
       </div>
-    </section>
+    </div>
   )
 }

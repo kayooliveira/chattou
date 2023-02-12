@@ -329,9 +329,8 @@ export function CurrentConversation(): React.ReactElement {
   return (
     <div
       className={classNames(
-        'h-full max-h-full flex-1 flex-col items-center justify-center rounded-3xl border-2 border-app-backgroundLight bg-app-background p-4 lg:relative lg:flex',
+        'fixed top-0 left-0 z-40 flex h-full w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-3xl border-2 border-app-backgroundLight bg-app-background p-2 lg:relative lg:relative lg:p-4',
         {
-          'fixed top-0 left-0 z-40  w-screen p-2 ': isCurrentConversationOpen,
           'hidden ': !isCurrentConversationOpen
         }
       )}
@@ -364,7 +363,7 @@ export function CurrentConversation(): React.ReactElement {
               </button>
             )}
           </header>
-          <main className="flex h-[calc(100%_-_9.5rem)] w-full flex-1 flex-col justify-between overflow-y-scroll pt-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-app-backgroundLight scrollbar-track-rounded-full scrollbar-thumb-rounded-full">
+          <main className="flex w-full flex-1 flex-col justify-between overflow-y-scroll pt-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-app-backgroundLight scrollbar-track-rounded-full scrollbar-thumb-rounded-full">
             <div className="flex-1">
               <div className="mb-4 w-full text-center text-app-light">
                 <span className="rounded-full bg-app-backgroundLight py-2 px-3">
@@ -386,7 +385,7 @@ export function CurrentConversation(): React.ReactElement {
           <form
             ref={formRef}
             onSubmit={handleAddNewMessage}
-            className="relative flex  w-full items-center justify-between gap-4 rounded-full border border-transparent bg-app-backgroundLight p-2 px-4 focus-within:border-app-light/30"
+            className="relative flex w-full items-center justify-between gap-4 rounded-full border border-transparent bg-app-backgroundLight p-2 px-4 focus-within:border-app-light/30"
           >
             <div className="absolute bottom-20 left-0">
               {showEmojiPicker && (
@@ -437,9 +436,11 @@ export function CurrentConversation(): React.ReactElement {
           </form>
         </>
       ) : (
-        <h1 className="block p-4 text-center text-3xl font-bold uppercase text-app-light">
-          Clique em uma conversa para iniciar o conversation!
-        </h1>
+        <div className="flex w-full flex-1 items-center justify-center">
+          <h1 className="block p-4 text-center text-3xl font-bold uppercase text-app-light">
+            Clique em uma conversa para iniciar o bate-papo!
+          </h1>
+        </div>
       )}
     </div>
   )
