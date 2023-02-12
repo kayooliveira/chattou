@@ -23,6 +23,9 @@ jobs:
             echo VITE_FIREBASE_MEASUREMENT_ID=${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }} >> .env
             cat .env
       - run: npm install
+      - run: | 
+            cp node_modules/emoji-picker-react/src/data/emojis.json node_modules/emoji-picker-react/dist/data/emojis.json
+            cp node_modules/emoji-picker-react/src/data/emojis.ts node_modules/emoji-picker-react/dist/data/emojis.ts
       - run: npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
