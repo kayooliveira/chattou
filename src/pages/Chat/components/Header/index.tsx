@@ -7,7 +7,7 @@ import { useAuthStore, User } from 'store/auth'
 import { ActiveUserCard } from '../ActiveUserCard'
 
 /**
- * @version 0.0.1
+ * @version 0.0.2
  *
  * @author Kayo Oliveira <contato@kayooliveira.com>
  *
@@ -140,6 +140,7 @@ export function Header(): React.ReactElement {
             activeUsers.map(activeUser => (
               <ActiveUserCard
                 key={activeUser.id}
+                id={activeUser.id}
                 name={activeUser.name}
                 avatar={activeUser.avatar || ''}
               />
