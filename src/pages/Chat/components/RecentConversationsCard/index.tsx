@@ -80,7 +80,7 @@ export function RecentConversationsCard({
     >
       <img
         src={avatar}
-        className="w-[23%] rounded-full"
+        className="w-[6rem] rounded-full"
         referrerPolicy="no-referrer"
         alt={name + ' avatar'}
       />
