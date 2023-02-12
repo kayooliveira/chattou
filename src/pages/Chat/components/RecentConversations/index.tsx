@@ -95,7 +95,7 @@ export function RecentConversations(): React.ReactElement {
     getConversations()
   }, [])
   return (
-    <section className="-mx-4 flex w-full flex-1 shrink-0 flex-col gap-4 overflow-y-scroll px-4 scrollbar-thin scrollbar-track-app-backgroundLight scrollbar-thumb-app-primary scrollbar-track-rounded-full scrollbar-thumb-rounded-full">
+    <section className="flex w-full flex-1 shrink-0 flex-col gap-4 overflow-y-scroll scrollbar-thin scrollbar-track-app-backgroundLight scrollbar-thumb-app-primary scrollbar-track-rounded-full scrollbar-thumb-rounded-full lg:px-4">
       <span className="flex w-fit items-center justify-center gap-2 self-start rounded-full bg-gradient-to-r from-app-primary to-[#B66DFF] py-1.5 px-2.5 text-xs font-bold leading-none text-app-text">
         Recentes
         <IoMdClock />
