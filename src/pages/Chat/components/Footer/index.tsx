@@ -18,7 +18,7 @@ export function Footer() {
     state => state.closeCurrentConversation
   )
   return (
-    <footer className="fixed bottom-2 left-1/2 flex h-fit w-[calc(100%_-_4rem)] -translate-x-1/2 translate-y-0 items-center justify-center gap-8 rounded-full bg-app-backgroundLight px-8 py-4 text-app-light shadow-md shadow-black drop-shadow-2xl lg:hidden">
+    <footer className="fixed bottom-2 left-1/2 z-20 flex h-fit w-[calc(100%_-_4rem)] -translate-x-1/2 translate-y-0 items-center justify-center gap-8 rounded-full bg-app-backgroundLight px-8 py-4 text-app-light shadow-md shadow-black drop-shadow-2xl lg:hidden">
       <button
         onClick={openCurrentConversation}
         className={classNames('transition-colors hover:text-app-primary', {
