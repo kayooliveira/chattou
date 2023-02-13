@@ -1,4 +1,3 @@
-import notificationSound from 'assets/sounds/notification.wav'
 import {
   collection,
   doc,
@@ -45,95 +44,88 @@ export function RecentConversations(): React.ReactElement {
    */
 
   useEffect(() => {
-    const getConversations = async () => {
-      const conversationsRef = collection(database, 'conversations')
-      const conversationsQuery = query(
-        conversationsRef,
-        orderBy('lastMessageDate', 'asc'),
-        where('users', 'array-contains', user.id)
-      )
-      const unsub = onSnapshot(conversationsQuery, querySnap => {
-        querySnap.forEach(async document => {
-          if (document.exists()) {
-            const data = document.data()
-            if (data) {
-              const usersDoc = doc(
-                database,
-                'users',
-                data.users.find(
-                  (conversationUser: string) => conversationUser !== user.id
-                )
-              ) // ? Doc dos usuários no banco de dados.
+    const conversationsRef = collection(database, 'conversations')
+    const conversationsQuery = query(
+      conversationsRef,
+      orderBy('lastMessageDate', 'asc'),
+      where('users', 'array-contains', user.id)
+    )
+    const unsubscribe = onSnapshot(conversationsQuery, querySnap => {
+      querySnap.forEach(async document => {
+        if (document.exists()) {
+          const data = document.data()
+          if (data) {
+            const usersDoc = doc(
+              database,
+              'users',
+              data.users.find(
+                (conversationUser: string) => conversationUser !== user.id
+              )
+            ) // ? Doc dos usuários no banco de dados.
 
-              const user2Data = await getDoc(usersDoc).then(user2Doc => {
-                // ? Pega os dados do usuário 2 da conversa.
-                if (user2Doc.exists()) {
-                  // ? Se a doc existir
-                  const data = user2Doc.data()
-                  if (data) {
-                    // ? Se existir os dados do usuário na doc então retorna os mesmos para a variável user2Data.
-                    return data
-                  }
+            const user2Data = await getDoc(usersDoc).then(user2Doc => {
+              // ? Pega os dados do usuário 2 da conversa.
+              if (user2Doc.exists()) {
+                // ? Se a doc existir
+                const data = user2Doc.data()
+                if (data) {
+                  // ? Se existir os dados do usuário na doc então retorna os mesmos para a variável user2Data.
+                  return data
                 }
-              })
-              if (!user2Data) return
-
-              const messageCollection = collection(
-                database,
-                `conversations/${document.id}/messages`
-              )
-              const messageQuery = query(
-                messageCollection,
-                orderBy('time', 'asc')
-              )
-              const messages: Message[] = []
-              const messagesSnap = await getDocs(messageQuery)
-              messagesSnap.forEach(messageDoc => {
-                if (messageDoc.exists()) {
-                  const messageData = messageDoc.data()
-                  if (messageData) {
-                    if (!messageData.isRead && messageData.sender !== user.id) {
-                      const notification = new Notification(user2Data.name, {
-                        body: messageData.body,
-                        silent: true,
-                        icon: user2Data.avatar
-                      })
-                      const notificationAudio = new Audio(notificationSound)
-                      notificationAudio.volume = 1
-                      notificationAudio.play()
-                      notification.close()
-                    }
-                    messages.push({
-                      ...(messageData as Message),
-                      time: new Date(messageData.time.seconds * 1000)
-                    })
-                  }
-                }
-              })
-              const unreadMessagesQnt = messages.filter(
-                message => message.sender !== user.id && !message.isRead
-              )
-
-              const conversation: Conversation = {
-                // ? Cria uma nova conversa com os dados resgatados e envia para o banco de dados e estado global.
-                id: document.id,
-                lastMessage: data.lastMessage,
-                lastMessageDate: new Date(data.lastMessageDate.seconds * 1000),
-                unreadMessagesQnt: unreadMessagesQnt.length,
-                name: user2Data?.name,
-                users: data.users,
-                image: user2Data?.avatar,
-                messages
               }
-              addNewConversation(conversation)
+            })
+            if (!user2Data) return
+
+            const messageCollection = collection(
+              database,
+              `conversations/${document.id}/messages`
+            )
+
+            const messageQuery = query(
+              messageCollection,
+              orderBy('time', 'asc')
+            )
+
+            const messages: Message[] = []
+
+            const messagesSnap = await getDocs(messageQuery)
+
+            messagesSnap.forEach(messageDoc => {
+              if (messageDoc.exists()) {
+                const messageData = messageDoc.data()
+                if (messageData) {
+                  messages.push({
+                    ...(messageData as Message),
+                    time: new Date(messageData.time.seconds * 1000)
+                  })
+                }
+              }
+            })
+
+            const unreadMessagesQnt = messages.filter(
+              message => message.sender !== user.id && !message.isRead
+            )
+
+            const conversation: Conversation = {
+              // ? Cria uma nova conversa com os dados resgatados e envia para o banco de dados e estado global.
+              id: document.id,
+              lastMessage: data.lastMessage,
+              lastMessageDate: new Date(data.lastMessageDate.seconds * 1000),
+              unreadMessagesQnt: unreadMessagesQnt.length,
+              name: user2Data?.name,
+              users: data.users,
+              image: user2Data?.avatar,
+              messages
             }
+            addNewConversation(conversation)
           }
-        })
+        }
       })
-      return () => unsub()
-    }
-    getConversations()
+    })
+
+    return () => unsubscribe()
   }, [])
+
   return (
     <div className="flex max-h-full flex-col gap-4 overflow-y-scroll scrollbar-thin scrollbar-track-app-backgroundLight scrollbar-thumb-app-primary scrollbar-track-rounded-full scrollbar-thumb-rounded-full">
       <span className="flex w-fit items-center justify-center gap-2 self-start rounded-full bg-gradient-to-r from-app-primary to-[#B66DFF] py-2 px-2.5 text-xs font-bold leading-none text-app-text">
