@@ -68,7 +68,7 @@ interface State {
 const ConversationsInitialState: Conversation[] = []
 
 /**
- * @version 1.0.4 // ! Última refatoração: 11/02/2023
+ * @version 1.0.5 // ! Última refatoração: 11/02/2023
  *
  * @author Kayo Oliveira <contato@kayooliveira.com>
  *
@@ -89,6 +89,7 @@ export const useConversationStore = create<State>((setState, getState) => ({
     setState(
       produce<State>(state => {
         state.isCurrentConversationOpen = !actualState.isCurrentConversationOpen
+        state.currentConversation = undefined
       })
     )
   },
