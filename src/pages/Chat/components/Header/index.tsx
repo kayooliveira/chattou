@@ -23,44 +23,40 @@ export function Header(): React.ReactElement {
 
   useEffect(() => {
     if (user) {
-      const controller = new AbortController()
-      const getUsers = async () => {
-        // ? Ao carregar o componente, busca por todos os usuários cadastrados e guarda os dados dos mesmos no estado do componente.
-        const usersRef = collection(database, 'users')
-        onSnapshot(usersRef, usersSnap => {
-          usersSnap.forEach(udoc => {
-            if (udoc.exists()) {
-              if (udoc.id === user.id) return // ? Verifica se o usuário iterado no momento tem o ID igual ao usuário ativo, se sim, pula esta iteração.
-              // ? Verifica se a doc existe.
-              const udata = udoc.data() as Omit<User, 'id'>
+      // ? Ao carregar o componente, busca por todos os usuários cadastrados e guarda os dados dos mesmos no estado do componente.
+      const usersRef = collection(database, 'users')
+      const unsubscribe = onSnapshot(usersRef, usersSnap => {
+        usersSnap.forEach(udoc => {
+          if (udoc.exists()) {
+            if (udoc.id === user.id) return // ? Verifica se o usuário iterado no momento tem o ID igual ao usuário ativo, se sim, pula esta iteração.
+            // ? Verifica se a doc existe.
+            const udata = udoc.data() as Omit<User, 'id'>
 
-              if (udata) {
-                // ? Se existir dados na doc, adicione ao estado activeUsers.
-                setActiveUsers(state => {
-                  const userData = {
-                    ...udata,
-                    id: udoc.id
+            if (udata) {
+              // ? Se existir dados na doc, adicione ao estado activeUsers.
+              setActiveUsers(state => {
+                const userData = {
+                  ...udata,
+                  id: udoc.id
+                }
+                if (state) {
+                  // ? Se o usuário já existir no estado, retorna apenas o estado sem alterá-lo.
+                  if (state.find(u => u.id === udoc.id)) {
+                    return state
                   }
-                  if (state) {
-                    // ? Se o usuário já existir no estado, retorna apenas o estado sem alterá-lo.
-                    if (state.find(u => u.id === udoc.id)) {
-                      return state
-                    }
-                    // ? Se não existir, adiciona o mesmo ao estado.
-                    return [...state, userData]
-                  }
-                  return [
-                    // ? Caso não haja usuários ao estado, adiciona um novo usuário a ele.
-                    userData
-                  ]
-                })
-              }
+                  // ? Se não existir, adiciona o mesmo ao estado.
+                  return [...state, userData]
+                }
+                return [
+                  // ? Caso não haja usuários ao estado, adiciona um novo usuário a ele.
+                  userData
+                ]
+              })
             }
-          })
+          }
         })
-      }
-      getUsers()
-      return () => controller.abort()
+      })
+      return () => unsubscribe()
     }
   }, [user])
 
