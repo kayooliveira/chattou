@@ -25,8 +25,8 @@ import {
   useState,
   KeyboardEvent
 } from 'react'
-import { isMobile } from 'react-device-detect'
 import { IoMdCloseCircle, IoMdHappy, IoMdSend } from 'react-icons/io'
+import { useMediaQuery } from 'react-responsive'
 import TextareaAutosize from 'react-textarea-autosize'
 import { useAuthStore, User } from 'store/auth'
 import { Conversation, Message, useConversationStore } from 'store/conversation'
@@ -45,6 +45,7 @@ import { CurrentConversationMessageBubble } from '../CurrentConversationMessageB
  */
 
 export function CurrentConversation(): React.ReactElement {
+  const isMobile = useMediaQuery({ query: '(max-width: 1224px)' })
   const [activeConversation, setActiveConversation] = useState<
     Conversation | undefined
   >(undefined) // ? Estado responsável por armazenar os dados da conversa ativa no momento.
@@ -124,7 +125,7 @@ export function CurrentConversation(): React.ReactElement {
 
       const messagesQuery = query(messagesRef, orderBy('time', 'asc')) // ? Ordena as mensagens da mais recente.
 
-      const unsub = onSnapshot(messagesQuery, async querySnapshot => {
+      const unsubscribe = onSnapshot(messagesQuery, async querySnapshot => {
         const messages: Message[] = [] // ? Variável que conterá as mensagens recebidas do banco de dados.
         querySnapshot.forEach(messageDoc => {
           if (messageDoc.exists()) {
@@ -159,7 +160,7 @@ export function CurrentConversation(): React.ReactElement {
           })
         )
       })
-      return unsub
+      return () => unsubscribe()
     }
   }, [currentConversation])
 
@@ -274,7 +275,6 @@ export function CurrentConversation(): React.ReactElement {
   useEffect(() => {
     scrollToBottom()
   }, [activeConversation?.messages])
-
   /**
    * @version 0.0.1
    *
@@ -330,7 +330,7 @@ export function CurrentConversation(): React.ReactElement {
       className={classNames(
         'fixed top-0 left-0 z-40 flex h-full w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-3xl border-2 border-app-backgroundLight bg-app-background p-2 lg:relative lg:p-4',
         {
-          'hidden ': !isCurrentConversationOpen
+          hidden: !isCurrentConversationOpen && isMobile
         }
       )}
     >
